@@ -210,39 +210,6 @@ BarWidget {
 
       Row {
         width: parent.width
-        spacing: Style.space(8)
-        Column {
-          width: parent.width - closeButton.width - Style.space(8)
-          spacing: Style.space(3)
-          Text {
-    textFormat: Text.PlainText
-            text: "YOUTUBE"
-            color: root.foreground
-            font.family: Style.font.menuFamily
-            font.pixelSize: Style.font.title
-            font.bold: true
-            font.letterSpacing: 1.2
-          }
-          Text {
-    textFormat: Text.PlainText
-            width: parent.width
-            text: root.words("Reproducción en segundo plano.", "Background playback.")
-            color: root.dim
-            font.family: Style.font.menuFamily
-            font.pixelSize: Style.font.bodySmall
-          }
-        }
-        Button {
-          id: closeButton
-          focusable: true
-          text: "×"
-          tooltipText: root.words("Cerrar", "Close")
-          onClicked: root.close()
-        }
-      }
-
-      Row {
-        width: parent.width
         spacing: Style.space(6)
         TextField {
           id: searchField
@@ -309,21 +276,26 @@ BarWidget {
           font.pixelSize: Style.font.bodySmall
           elide: Text.ElideRight
         }
-        Row {
+        // Icon-only controls with tooltips: playback on the left, volume and
+        // video on the right.
+        Item {
           width: parent.width
-          spacing: Style.space(6)
-          Button { focusable: true; text: root.playing ? "󰏤" : "󰐊"; onClicked: root.run(["action", "pause"]) }
-          Button { focusable: true; text: "−"; onClicked: root.run(["action", "volume-down"]) }
-          Button { focusable: true; text: "+"; onClicked: root.run(["action", "volume-up"]) }
-          Button { focusable: true; text: root.words("Ampliar", "Fullscreen"); onClicked: root.run(["action", "fullscreen"]) }
-          Button { focusable: true; text: root.words("Detener", "Stop"); onClicked: root.run(["action", "stop"]) }
-        }
-        Row {
-          width: parent.width
-          spacing: Style.space(6)
-          Button { focusable: true; text: root.words("󰒮 Anterior", "󰒮 Previous"); onClicked: root.run(["action", "prev"]) }
-          Button { focusable: true; text: root.words("Siguiente 󰒭", "Next 󰒭"); onClicked: root.run(["action", "next"]) }
-          Button { focusable: true; text: root.audioOnly ? root.words("Mostrar video", "Show video") : root.words("Solo audio", "Audio only"); onClicked: root.run(["action", root.audioOnly ? "show-video" : "audio-only"]) }
+          height: leftControls.implicitHeight
+          Row {
+            id: leftControls
+            anchors.left: parent.left
+            spacing: Style.space(6)
+            Button { focusable: true; text: "󰒮"; tooltipText: root.words("Anterior", "Previous"); onClicked: root.run(["action", "prev"]) }
+            Button { focusable: true; text: root.playing ? "󰏤" : "󰐊"; tooltipText: root.playing ? root.words("Pausa", "Pause") : root.words("Reproducir", "Play"); onClicked: root.run(["action", "pause"]) }
+            Button { focusable: true; text: "󰒭"; tooltipText: root.words("Siguiente", "Next"); onClicked: root.run(["action", "next"]) }
+            Item { width: Style.space(12); height: 1 }
+            Button { focusable: true; text: "󰓛"; tooltipText: root.words("Detener", "Stop"); onClicked: root.run(["action", "stop"]) }
+          }
+          Row {
+            anchors.right: parent.right
+            spacing: Style.space(6)
+            Button { focusable: true; text: root.audioOnly ? "󰕧" : "󰋋"; tooltipText: root.audioOnly ? root.words("Mostrar video", "Show video") : root.words("Solo audio", "Audio only"); onClicked: root.run(["action", root.audioOnly ? "show-video" : "audio-only"]) }
+          }
         }
         Row {
           width: parent.width
