@@ -401,6 +401,14 @@ def action(name: str, lang: str) -> dict:
         elif name == "stop":
             ipc(["stop"])
             write_state({})
+        elif name.startswith("seek:"):
+            try:
+                percent = float(name[5:])
+            except ValueError:
+                return {"ok": False, "message": _t("Acción no reconocida.", "Unknown action.", lang)}
+            if not 0.0 <= percent <= 100.0:
+                return {"ok": False, "message": _t("Acción no reconocida.", "Unknown action.", lang)}
+            ipc(["seek", percent, "absolute-percent"])
         elif name in {"next", "prev"}:
             try:
                 ipc(["playlist-next" if name == "next" else "playlist-prev", "weak"])

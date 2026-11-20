@@ -312,9 +312,7 @@ BarWidget {
         Row {
           width: parent.width
           spacing: Style.space(6)
-          Button { focusable: true; text: "−10"; onClicked: root.run(["action", "back"]) }
           Button { focusable: true; text: root.playing ? "󰏤" : "󰐊"; onClicked: root.run(["action", "pause"]) }
-          Button { focusable: true; text: "+10"; onClicked: root.run(["action", "forward"]) }
           Button { focusable: true; text: "−"; onClicked: root.run(["action", "volume-down"]) }
           Button { focusable: true; text: "+"; onClicked: root.run(["action", "volume-up"]) }
           Button { focusable: true; text: root.words("Ampliar", "Fullscreen"); onClicked: root.run(["action", "fullscreen"]) }
@@ -330,17 +328,36 @@ BarWidget {
         Row {
           width: parent.width
           spacing: Style.space(6)
-          Rectangle {
+          // Click anywhere on the bar to seek there. The wrapper is taller than the
+          // 3px track so it is easy to hit.
+          Item {
+            id: seekBar
             width: parent.width - timeLabel.width - Style.space(6)
-            height: Style.space(3)
+            height: Style.space(16)
             anchors.verticalCenter: parent.verticalCenter
-            radius: height / 2
-            color: Qt.darker(root.foreground, 2.3)
             Rectangle {
-              width: parent.width * (root.durationSeconds > 0 ? Math.min(1, root.position / root.durationSeconds) : 0)
-              height: parent.height
+              id: track
+              width: parent.width
+              height: Style.space(3)
+              anchors.verticalCenter: parent.verticalCenter
               radius: height / 2
-              color: Color.accent
+              color: Qt.darker(root.foreground, 2.3)
+              Rectangle {
+                width: parent.width * (root.durationSeconds > 0 ? Math.min(1, root.position / root.durationSeconds) : 0)
+                height: parent.height
+                radius: height / 2
+                color: Color.accent
+              }
+            }
+            MouseArea {
+              anchors.fill: parent
+              enabled: root.durationSeconds > 0
+              cursorShape: Qt.PointingHandCursor
+              onClicked: function(mouse) {
+                var fraction = Math.max(0, Math.min(1, mouse.x / width))
+                root.position = fraction * root.durationSeconds
+                root.run(["action", "seek:" + (fraction * 100).toFixed(2)])
+              }
             }
           }
           Text {
