@@ -253,6 +253,7 @@ def ensure_player() -> None:
         "--stream-lavf-o=reconnect=1,reconnect_on_http_error=4xx,reconnect_delay_max=10",
         "--idle=yes",
         "--keep-open=yes",
+        "--volume=50",
         # Without this mpv plays only the single video of a watch?v=...&list=... link.
         "--ytdl-raw-options=yes-playlist=",
     ]
@@ -386,6 +387,7 @@ def play(url: str, lang: str) -> dict:
         ensure_player()
         # Background playback by default; the PiP only appears on "show-video".
         ipc(["set_property", "vid", "no"])
+        ipc(["set_property", "volume", 50])
         ipc(["loadfile", url, "replace"])
         ipc(["set_property", "pause", False])
         write_state({"url": url, "title": title, "channel": channel, "thumbnail": thumbnail, "audioOnly": True})
@@ -423,10 +425,15 @@ def action(name: str, lang: str) -> dict:
             ipc(["seek", -10, "relative"])
         elif name == "forward":
             ipc(["seek", 10, "relative"])
-        elif name == "volume-up":
-            ipc(["add", "volume", 5])
-        elif name == "volume-down":
-            ipc(["add", "volume", -5])
+        elif name in {"volume-up", "volume-down"}:
+            # Adjust the system output volume (and show the Omarchy OSD) so the
+            # buttons stay in sync with the volume keys and Bluetooth sliders;
+            # mpv's own volume stays fixed at 50.
+            subprocess.run(
+                ["omarchy-audio-output-volume", "+1" if name == "volume-up" else "-1"],
+                stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                timeout=4, check=False,
+            )
         elif name == "fullscreen":
             ipc(["cycle", "fullscreen"])
         elif name in {"audio-only", "show-video"}:
