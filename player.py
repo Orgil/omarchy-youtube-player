@@ -253,6 +253,8 @@ def ensure_player() -> None:
         "--stream-lavf-o=reconnect=1,reconnect_on_http_error=4xx,reconnect_delay_max=10",
         "--idle=yes",
         "--keep-open=yes",
+        # Without this mpv plays only the single video of a watch?v=...&list=... link.
+        "--ytdl-raw-options=yes-playlist=",
     ]
     subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
     deadline = time.monotonic() + 5
@@ -399,6 +401,16 @@ def action(name: str, lang: str) -> dict:
         elif name == "stop":
             ipc(["stop"])
             write_state({})
+        elif name in {"next", "prev"}:
+            try:
+                ipc(["playlist-next" if name == "next" else "playlist-prev", "weak"])
+            except RuntimeError:
+                # mpv errors when there is no such item (single video, or first/last of a playlist).
+                return {"ok": False, "message": _t(
+                    "No hay video siguiente." if name == "next" else "No hay video anterior.",
+                    "There is no next video." if name == "next" else "There is no previous video.",
+                    lang,
+                )}
         elif name == "back":
             ipc(["seek", -10, "relative"])
         elif name == "forward":

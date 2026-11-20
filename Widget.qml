@@ -38,6 +38,11 @@ BarWidget {
   function search() {
     var term = searchField.text.trim()
     if (searchProcess.running || term === "") return
+    // A pasted YouTube link plays directly instead of being searched for.
+    if (/^https?:\/\/((www|m|music)\.)?(youtube\.com|youtu\.be)\//i.test(term)) {
+      playUrl(term)
+      return
+    }
     query = term
     busy = true
     statusMessage = words("Buscando…", "Searching…")
@@ -195,15 +200,8 @@ BarWidget {
     focusTarget: searchField
     contentWidth: popup.fittedContentWidth(Style.space(420))
     contentHeight: popup.fittedContentHeight(column.implicitHeight)
-    // Keep the keyboard layer's input region on the card. The shared
-    // KeyboardPanel is full-screen so keyboard-summoned panels can focus, but
-    // this player must not intercept clicks on the desktop around it.
-    mask: Region {
-      x: popup.cardOrigin.x
-      y: popup.cardOrigin.y
-      width: popup.contentWidth
-      height: popup.contentHeight
-    }
+    // No mask override: the shared KeyboardPanel's full-screen overlay catches
+    // clicks outside the card and closes the popup.
 
     Column {
       id: column
@@ -325,6 +323,8 @@ BarWidget {
         Row {
           width: parent.width
           spacing: Style.space(6)
+          Button { focusable: true; text: root.words("󰒮 Anterior", "󰒮 Previous"); onClicked: root.run(["action", "prev"]) }
+          Button { focusable: true; text: root.words("Siguiente 󰒭", "Next 󰒭"); onClicked: root.run(["action", "next"]) }
           Button { focusable: true; text: root.audioOnly ? root.words("Mostrar video", "Show video") : root.words("Solo audio", "Audio only"); onClicked: root.run(["action", root.audioOnly ? "show-video" : "audio-only"]) }
         }
         Row {
